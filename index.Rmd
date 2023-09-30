@@ -210,6 +210,9 @@ ggplot(grid_us_fires) +
 These charts show how 2017 was the most devasting year for wildfires in California on record. The first shows the total area burned per year, recorded in Cal Fire's Fire Perimeters Geodatabase.
 
 ```{r, results="hide", warning=FALSE, message=FALSE}
+library(ggpubr)
+
+
 # calculate total acres burned per year
 acres_year <- calfire %>%
   group_by(year_) %>%
@@ -217,12 +220,63 @@ acres_year <- calfire %>%
 
 # plot
 ggplot(acres_year, aes(x = year_, y = acres/10^6)) +
-  geom_bar(stat = "identity", fill = "#ffa500", color = "#ffa500", size = 0, alpha = 0.7) +
+  geom_area() +
   ylab("Acres burned (millions)") +
-  xlab("") +
+  xlab("Year") +
   scale_x_continuous(breaks = c(1950,1970,1990,2010)) +
-  theme_hc(bgcolor = "darkunica", base_size = 20, base_family = "ProximaNova-Semibold") +
-  theme(axis.text = element_text(color = "#ffffff"))
+  theme_bw() +
+  theme(axis.text = element_text(color = "black"))
+  
+  
+  
+
+  
+  #geom_bar(stat = "identity", fill = "#ffa500", color = "red", size = 0.5, alpha = 0.7) +
+  #ylab("Acres burned (millions)") +
+  #xlab("Year") +
+  #scale_x_continuous(breaks = c(1950,1970,1990,2010)) +
+  #theme_bw() +
+ # theme(axis.text = element_text(color = "black"))
+
+
+cost.data <- read_csv("Final_Data_2023.csv")
+
+join.df<- full_join(cost.data, acres_year) 
+join.df <- join.df %>% 
+  filter( acres != is.na(TRUE) &
+        DOLLAR_DAMAGE != is.na(TRUE) )
+
+
+burn <- ggplot(join.df, aes(x = year_, y = acres/10^6)) +
+  geom_area(color = "#ffa500", fill = "#ffa500") +
+  ylab("Acres burned (millions)") +
+  xlab("Year") +
+  scale_x_continuous(breaks = c(1950,1970,1990,2010)) +
+  theme_bw() +
+  theme_hc(bgcolor = "darkunica", base_size = 10, base_family = "ProximaNova-Semibold") +
+  theme(axis.text = element_text(color = "#ffffff"), axis.title.x = element_text(color = "#ffffff"),
+        axis.title.y = element_text(color = "#ffffff"))
+
+# ggplot(cost.data, aes(x = year_, y = ACRES_BURNED/10^6)) +
+#   geom_area(color = "darkorange", fill = "darkorange") +
+#   ylab("Acres burned (millions)") +
+#   xlab("Year") +
+#   scale_x_continuous(breaks = c(1950,1970,1990,2010)) +
+#   theme_bw() +
+
+cost <- ggplot(join.df, aes(year_, DOLLAR_DAMAGE/10^6)) +
+  geom_line(color = "#009900", size = 1) +
+  ylab("Dollars of Damage (millions)") +
+  xlab("Year") +
+  scale_x_continuous(breaks = c(1950,1970,1990,2010)) +
+  theme_hc(bgcolor = "darkunica", base_size = 10, base_family = "ProximaNova-Semibold")  +
+  theme(axis.text = element_text(color = "#ffffff"),
+        axis.title.x = element_text(color = "#ffffff"),
+        axis.title.y = element_text(color = "#ffffff"))
+
+ggarrange(burn, cost, nrow = 2)
+ggsave("final.fig.png")
+
 ```
 
 The second shows the number of buildings destroyed per year from 1989 to 2017, from Cal Fire data.
